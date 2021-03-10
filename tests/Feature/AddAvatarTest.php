@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use App\User;
 
 class AddAvatarTest extends TestCase
 {
@@ -15,7 +16,10 @@ class AddAvatarTest extends TestCase
     {
         $this->withExceptionHandling();
 
-        $this->json('post', 'users/{user}/avatar')
+        $user = create(User::class);
+
+        $this->json('POST',
+                            route('user.avatar.store', ['user' => $user->name]))
              ->assertStatus(401);
     }
 
@@ -23,9 +27,10 @@ class AddAvatarTest extends TestCase
     {
         $this->withExceptionHandling()->signIn();
 
-        $this->json('post', 'users/' . auth()->id() . '/avatar', [
-            'avatar' => 'not-an-image'
-        ])->assertStatus(422);
+        $this->json('POST',
+                            route('user.avatar.store', ['user' => auth()->user()->name]),
+                            ['avatar' => 'not-an-image'])
+             ->assertStatus(422);
     }
 
     public function testUserMayAddAvatarToTheirProfile()
@@ -35,8 +40,8 @@ class AddAvatarTest extends TestCase
         Storage::fake('public');
 
         $this->json('POST',
-                    'users/' . auth()->id() . '/avatar',
-                    ['avatar' => $file = UploadedFile::fake()->image('avatar.jpg')]);
+                            route('user.avatar.store', ['user' => auth()->user()->name]),
+                            ['avatar' => $file = UploadedFile::fake()->image('avatar.jpg')]);
 
         $this->assertEquals(Storage::url('avatars/' . $file->hashName()),
                             auth()->user()->avatar_path);

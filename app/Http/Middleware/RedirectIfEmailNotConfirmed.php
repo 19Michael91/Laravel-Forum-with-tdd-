@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 
-class RedirectIfEmailConfirmed
+class RedirectIfEmailNotConfirmed
 {
     /**
      * Handle an incoming request.
