@@ -21,7 +21,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'avatar_path'
+        'name', 'email', 'password', 'avatar_path', 'confirmed', 'confirmation_token'
     ];
 
     /**
@@ -80,10 +80,10 @@ class User extends Authenticatable
 
     public function confirm()
     {
-        $this->confirmed            = true;
-        $this->confirmation_token   = null;
-
-        $this->save();
+        $this->update([
+            'confirmed'             => true,
+            'confirmation_token'    => null,
+        ]);
     }
 
     public function isAdmin()
