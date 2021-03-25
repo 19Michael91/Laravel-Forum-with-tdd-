@@ -11,7 +11,7 @@ class ProfilesTest extends TestCase
 {
     use DatabaseMigrations;
 
-    public function testuserHasProfile()
+    public function testUserHasProfile()
     {
         $user = create(User::class);
 

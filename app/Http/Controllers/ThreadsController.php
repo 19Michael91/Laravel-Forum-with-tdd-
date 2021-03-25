@@ -36,7 +36,6 @@ class ThreadsController extends Controller
     public function store()
     {
         request()->validate([
-            // 'title'         => 'required|spamfree|unique:threads',
             'title'         => 'required|spamfree',
             'body'          => 'required|spamfree',
             'channel_id'    => 'required|exists:channels,id',

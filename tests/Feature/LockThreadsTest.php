@@ -19,7 +19,7 @@ class LockThreadsTest extends TestCase
 
         $thread = create(Thread::class, ['user_id' => auth()->id()]);
 
-        $this->post(route('locked-threads.store', ['thread' => $thread]))
+        $this->post(route('locked-threads.store', ['thread' => $thread->slug]))
              ->assertStatus(403);
 
         $this->assertFalse(!! $thread->fresh()->locked);
@@ -31,7 +31,7 @@ class LockThreadsTest extends TestCase
 
         $thread = create(Thread::class, ['user_id' => auth()->id()]);
 
-        $this->post(route('locked-threads.store', ['thread' => $thread]));
+        $this->post(route('locked-threads.store', ['thread' => $thread->slug]));
 
         $this->assertTrue($thread->fresh()->locked, 'Failed asserting that the thread was locked.');
     }
@@ -42,7 +42,7 @@ class LockThreadsTest extends TestCase
 
         $thread = create(Thread::class, ['user_id' => auth()->id(), 'locked' => true]);
 
-        $this->delete(route('locked-threads.delete', ['thread' => $thread]));
+        $this->delete(route('locked-threads.delete', ['thread' => $thread->slug]));
 
         $this->assertFalse($thread->fresh()->locked, 'Failed asserting that the thread was unlocked.');
     }

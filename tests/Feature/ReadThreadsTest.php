@@ -36,8 +36,8 @@ class ReadThreadsTest extends TestCase
     public function testUserCanFilterThreadsAccordingToChannel()
     {
         $channel            = create(Channel::class);
-        $threadInChannel    = create(Thread::class, ['channel_id' => $channel->id]);
         $threadNotInChannel = create(Thread::class);
+        $threadInChannel    = create(Thread::class, ['channel_id' => $channel->id]);
 
         $this->get('/threads/' . $channel->slug)
              ->assertSee($threadInChannel->title)
