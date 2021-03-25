@@ -88,6 +88,6 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return in_array($this->name, ['user1', 'user2']);
+        return in_array($this->name, ['user1', 'admin']);
     }
 }
