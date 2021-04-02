@@ -14,8 +14,8 @@ class FavoritesTest extends TestCase
     {
         $this->withExceptionHandling();
 
-        $this->post('/replies/1/favorites')
-             ->assertRedirect('/login');
+        $this->post(route('replies.favorites.store', ['reply' => '1']))
+             ->assertRedirect(route('login'));
     }
 
     public function testAuthenticatedUserCanFavoriteAnyReply()
@@ -24,7 +24,7 @@ class FavoritesTest extends TestCase
 
         $reply = create(Reply::class);
 
-        $this->post('replies/' . $reply->id . '/favorites');
+        $this->post(route('replies.favorites.store', ['reply' => $reply->id]));
 
         $this->assertCount(1, $reply->favorites);
     }
@@ -37,7 +37,7 @@ class FavoritesTest extends TestCase
 
         $reply->favorite(auth()->id());
 
-        $this->delete('replies/' . $reply->id . '/favorites');
+        $this->delete(route('replies.favorites.delete', ['reply' => $reply->id]));
 
         $this->assertCount(0, $reply->favorites);
     }
@@ -49,8 +49,8 @@ class FavoritesTest extends TestCase
         $reply = create(Reply::class);
 
         try {
-            $this->post('replies/' . $reply->id . '/favorites');
-            $this->post('replies/' . $reply->id . '/favorites');
+            $this->post(route('replies.favorites.store', ['reply' => $reply->id]));
+            $this->post(route('replies.favorites.store', ['reply' => $reply->id]));
         } catch (\Exception $e) {
             $this->fail('Did not except to insert the same record set twice.');
         }
