@@ -18,7 +18,9 @@ class ParticipateInForumTest extends TestCase
         $thread = create(Thread::class);
         $reply  = create(Reply::class);
 
-        $this->post($thread->path() . '/replies', $reply->toArray())->assertRedirect('/login');
+        $this->post(route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                    $reply->toArray())
+             ->assertRedirect(route('login'));
     }
 
     public function testAuthenticatedUserMayParticipateInForumThreads()
@@ -28,7 +30,8 @@ class ParticipateInForumTest extends TestCase
         $thread = create(Thread::class);
         $reply  = make(Reply::class);
 
-        $this->post($thread->path() . '/replies', $reply->toArray());
+        $this->post(route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                    $reply->toArray());
 
         $this->assertDatabaseHas('replies', ['body' => $reply->body]);
         $this->assertEquals(1, $thread->fresh()->replies_count);
@@ -43,7 +46,8 @@ class ParticipateInForumTest extends TestCase
         $thread = create(Thread::class);
         $reply  = make(Reply::class, ['body' => null]);
 
-        $this->post($thread->path() . '/replies', $reply->toArray())
+        $this->post(route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                    $reply->toArray())
              ->assertSessionHasErrors('body');
     }
 
@@ -53,11 +57,11 @@ class ParticipateInForumTest extends TestCase
 
         $reply = create(Reply::class);
 
-        $this->delete('/replies/' . $reply->id)
-             ->assertRedirect('/login');
+        $this->delete(route('replies.delete', ['reply' => $reply->id]))
+             ->assertRedirect(route('login'));
 
         $this->signIn()
-             ->delete("/replies/{$reply->id}")
+             ->delete(route('replies.delete', ['reply' => $reply->id]))
              ->assertStatus(403);
     }
 
@@ -67,7 +71,8 @@ class ParticipateInForumTest extends TestCase
 
         $reply = create(Reply::class, ['user_id' => auth()->id()]);
 
-        $this->delete('/replies/' . $reply->id)->assertStatus(302);
+        $this->delete(route('replies.delete', ['reply' => $reply->id]))
+             ->assertStatus(302);
 
         $this->assertDatabaseMissing('replies', ['id' => $reply->id]);
         $this->assertEquals(0, $reply->thread->fresh()->replies_count);
@@ -81,7 +86,7 @@ class ParticipateInForumTest extends TestCase
 
         $updatedReply = 'You been changed.';
 
-        $this->patch('/replies/' . $reply->id, ['body' => $updatedReply]);
+        $this->patch(route('replies.update', ['reply' => $reply->id]), ['body' => $updatedReply]);
 
         $this->assertDatabaseHas('replies', ['id' => $reply->id, 'body' => $updatedReply]);
     }
@@ -92,11 +97,11 @@ class ParticipateInForumTest extends TestCase
 
         $reply = create(Reply::class);
 
-        $this->patch('/replies/' . $reply->id)
-             ->assertRedirect('/login');
+        $this->patch(route('replies.update', ['reply' => $reply->id]))
+             ->assertRedirect(route('login'));
 
         $this->signIn()
-             ->patch("/replies/{$reply->id}")
+             ->patch(route('replies.update', ['reply' => $reply->id]))
              ->assertStatus(403);
     }
 
@@ -111,7 +116,9 @@ class ParticipateInForumTest extends TestCase
             'body' => 'Yahoo Customer Support'
         ]);
 
-        $this->json('post', $thread->path() . '/replies', $reply->toArray())
+        $this->json('post',
+                    route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                    $reply->toArray())
              ->assertStatus(422);
     }
 
@@ -126,10 +133,12 @@ class ParticipateInForumTest extends TestCase
             'body' => 'My Simple Reply'
         ]);
 
-        $this->post($thread->path() . '/replies', $reply->toArray())
+        $this->post(route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                    $reply->toArray())
              ->assertStatus(201);
 
-         $this->post($thread->path() . '/replies', $reply->toArray())
-              ->assertStatus(422);
+        $this->post(route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                    $reply->toArray())
+             ->assertStatus(422);
     }
 }
