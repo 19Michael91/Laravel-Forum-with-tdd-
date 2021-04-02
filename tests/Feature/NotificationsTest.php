@@ -26,15 +26,15 @@ class NotificationsTest extends TestCase
         $this->assertCount(0, auth()->user()->notifications);
 
         $thread->addReply([
-            'user_id' => auth()->id(),
-            'body' => 'Some body for test',
+            'user_id'   => auth()->id(),
+            'body'      => 'Some body for test',
         ]);
 
         $this->assertCount(0, auth()->user()->fresh()->notifications);
 
         $thread->addReply([
-            'user_id' => create(User::class)->id,
-            'body' => 'Some body for test',
+            'user_id'   => create(User::class)->id,
+            'body'      => 'Some body for test',
         ]);
 
         $this->assertCount(1, auth()->user()->fresh()->notifications);
@@ -44,7 +44,8 @@ class NotificationsTest extends TestCase
     {
         create(DatabaseNotification::class);
 
-        $this->assertCount(1, $this->getJson('/profiles/' . auth()->user()->name . '/notifications/')->json());
+        $this->assertCount(1,
+                            $this->getJson(route('profiles.notifications.index', ['user' => auth()->user()->name]))->json());
     }
 
     public function testUserCanMarkNotificationAsRead()
@@ -52,10 +53,9 @@ class NotificationsTest extends TestCase
         create(DatabaseNotification::class);
 
         tap(auth()->user(), function($user){
-
             $this->assertCount(1, $user->unreadNotifications);
 
-            $this->delete('/profiles/' . $user->name . '/notifications/' . $user->unreadnotifications->first()->id);
+            $this->delete(route('profiles.notifications.delete', ['user' => $user->name, 'notification' => $user->unreadnotifications->first()->id]));
 
             $this->assertCount(1, $user->unreadNotifications);
         });
