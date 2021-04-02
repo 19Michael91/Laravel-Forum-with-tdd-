@@ -21,9 +21,9 @@ class CreateThreadsTest extends TestCase
 
         $this->post(route('threads.store'), $thread->toArray());
 
-        $this->get($thread->path())
-            ->assertSee($thread->title)
-            ->assertSee($thread->body);
+        $this->get(route('threads.show', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]))
+             ->assertSee($thread->title)
+             ->assertSee($thread->body);
     }
 
     public function testNewUsersMustFirstConfirmTheirEmailAddressBeforeCreatingThreads()
@@ -44,10 +44,10 @@ class CreateThreadsTest extends TestCase
         $this->withExceptionHandling();
 
         $this->post(route('threads.index'))
-            ->assertRedirect(route('login'));
+             ->assertRedirect(route('login'));
 
         $this->get(route('threads.create'))
-            ->assertRedirect(route('login'));
+             ->assertRedirect(route('login'));
     }
 
     public function testThreadRequiresTitle()
@@ -55,7 +55,7 @@ class CreateThreadsTest extends TestCase
         $this->withExceptionHandling();
 
         $this->publishThread(['title' => null])
-            ->assertSessionHasErrors('title');
+             ->assertSessionHasErrors('title');
     }
 
     public function testThreadRequiresBody()
@@ -63,7 +63,7 @@ class CreateThreadsTest extends TestCase
         $this->withExceptionHandling();
 
         $this->publishThread(['body' => null])
-            ->assertSessionHasErrors('body');
+             ->assertSessionHasErrors('body');
     }
 
     public function testThreadRequiresValidChannel()
@@ -73,10 +73,10 @@ class CreateThreadsTest extends TestCase
         factory('App\Channel', 2)->create();
 
         $this->publishThread(['channel_id' => 999])
-            ->assertSessionHasErrors('channel_id');
+             ->assertSessionHasErrors('channel_id');
 
         $this->publishThread(['channel_id' => null])
-            ->assertSessionHasErrors('channel_id');
+             ->assertSessionHasErrors('channel_id');
     }
 
     public function testThreadRequiresUniqueSlug()
@@ -113,7 +113,9 @@ class CreateThreadsTest extends TestCase
 
         $reply = create(Reply::class, ['thread_id' => $thread->id]);
 
-        $response = $this->json('DELETE', $thread->path());
+        $response = $this->json('DELETE', route('threads.delete', ['channel' => $thread->channel->slug,
+                                                                                 'thread' => $thread->slug])
+        );
 
         $response->assertStatus(204);
 
@@ -121,7 +123,6 @@ class CreateThreadsTest extends TestCase
         $this->assertDatabaseMissing('replies', ['id' => $reply->id]);
 
         $this->assertEquals(0, Activity::count());
-
     }
 
     public function testUnauthorizedUsersMayNotDeleteThreads()
@@ -130,13 +131,16 @@ class CreateThreadsTest extends TestCase
 
         $thread = create(Thread::class);
 
-        $this->delete($thread->path())
-            ->assertRedirect(route('login'));
+
+        $this->delete(route('threads.delete', ['channel' => $thread->channel->slug,
+                                                     'thread' => $thread->slug]))
+             ->assertRedirect(route('login'));
 
         $this->signIn();
 
-        $this->delete($thread->path())
-            ->assertStatus(403);
+        $this->delete(route('threads.delete', ['channel' => $thread->channel->slug,
+                                                     'thread' => $thread->slug]))
+             ->assertStatus(403);
     }
 
     public function publishThread($overrides = [])
