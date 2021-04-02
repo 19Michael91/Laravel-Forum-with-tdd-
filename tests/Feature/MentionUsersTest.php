@@ -26,7 +26,9 @@ class MentionUsersTest extends TestCase
             'body' => '@JaneSmith look at this. Also @FrankDoe'
         ]);
 
-        $this->json('post', $thread->path() . '/replies', $reply->toArray());
+        $this->json('post',
+                            route('threads.replies.store', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                            $reply->toArray());
 
         $this->assertCount(1, $jane->notifications);
     }
@@ -37,7 +39,7 @@ class MentionUsersTest extends TestCase
         create(User::class, ['name' => 'JhonJackson']);
         create(User::class, ['name' => 'JaneSmith']);
 
-        $results = $this->json('GET', '/api/users', ['name' => 'jhon']);
+        $results = $this->json('GET', route('api.users.index'), ['name' => 'jhon']);
 
         $this->assertCount(2, $results->json());
     }
