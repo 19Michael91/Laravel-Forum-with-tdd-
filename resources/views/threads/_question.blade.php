@@ -26,8 +26,8 @@
 
             @can ('update', $thread)
                 <form action="{{ route('threads.delete', [
-                        'channel' => $thread->channel,
-                        'thread' => $thread,
+                        'channel' => $thread->channel->slug,
+                        'thread'  => $thread->slug,
                     ]) }}"
                     method="POST"
                     class="ml-a">
