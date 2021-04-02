@@ -24,30 +24,33 @@ class UpdateThreadsTest extends TestCase
     {
         $thread = create(Thread::class, ['user_id' => auth()->id()]);
 
-        $this->patch($thread->path(), [
-            'title' => 'Changed',
-        ])->assertSessionHasErrors('body');
+        $this->patch(route('threads.update', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                     ['title' => 'Changed'])
+             ->assertSessionHasErrors('body');
 
-        $this->patch($thread->path(), [
-            'body' => 'Changed body',
-        ])->assertSessionHasErrors('title');
+        $this->patch(route('threads.update', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                     ['body' => 'Changed body'])
+             ->assertSessionHasErrors('title');
     }
 
     public function testUnauthorizedUsersMayNotUpdateThreads()
     {
         $thread = create(Thread::class, ['user_id' => create(User::class)->id]);
 
-        $this->patch($thread->path(), [])->assertStatus(403);
+        $this->patch(route('threads.update', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                     [])
+             ->assertStatus(403);
     }
 
     public function testThreadCanBeUpdatedByItsCreator()
     {
         $thread = create(Thread::class, ['user_id' => auth()->id()]);
 
-        $this->patch($thread->path(), [
-            'title' => 'Changed',
-            'body' => 'Changed body',
-        ]);
+        $this->patch(route('threads.update', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]),
+                     [
+                         'title' => 'Changed',
+                         'body' => 'Changed body',
+                     ]);
 
         tap($thread->fresh(), function($thread){
             $this->assertEquals('Changed', $thread->fresh()->title);
