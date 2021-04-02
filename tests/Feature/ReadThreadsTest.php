@@ -6,7 +6,6 @@ use App\Thread;
 use App\User;
 use App\Reply;
 use App\Channel;
-use App\Visits;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 
@@ -25,12 +24,15 @@ class ReadThreadsTest extends TestCase
 
     public function testUserCanViewAllThreads()
     {
-        $this->get('/threads')->assertSee($this->thread->title);
+        $this->get(route('threads.index'))
+             ->assertSee($this->thread->title);
     }
 
     public function testUserCanReadeSingleThread()
     {
-        $this->get($this->thread->path())->assertSee($this->thread->title);
+        $this->get(route('threads.show', ['channel' => $this->thread->channel->slug,
+                                                'thread'  => $this->thread->slug]))
+             ->assertSee($this->thread->title);
     }
 
     public function testUserCanFilterThreadsAccordingToChannel()
@@ -39,7 +41,7 @@ class ReadThreadsTest extends TestCase
         $threadNotInChannel = create(Thread::class);
         $threadInChannel    = create(Thread::class, ['channel_id' => $channel->id]);
 
-        $this->get('/threads/' . $channel->slug)
+        $this->get(route('threads.channel.index', ['channel' => $channel->slug]))
              ->assertSee($threadInChannel->title)
              ->assertDontSee($threadNotInChannel->title);
     }
@@ -51,7 +53,7 @@ class ReadThreadsTest extends TestCase
         $threadByJhon    = create(Thread::class, ['user_id' => auth()->id()]);
         $threadNotByJhon = create(Thread::class);
 
-        $this->get('threads?by=JhonDoe')
+        $this->get('/threads?by=JhonDoe')
              ->assertSee($threadByJhon->title)
              ->assertDontSee($threadNotByJhon->title);
     }
@@ -66,7 +68,7 @@ class ReadThreadsTest extends TestCase
 
         $threadWithNoReplies = $this->thread;
 
-        $response = $this->getJson('threads?popular=1')->json();
+        $response = $this->getJson('/threads?popular=1')->json();
 
         $this->assertEquals([3, 2, 0], array_column($response['data'], 'replies_count'));
     }
@@ -76,7 +78,7 @@ class ReadThreadsTest extends TestCase
         $thread = create(Thread::class);
         $reply  = create(Reply::class, ['thread_id' => $thread->id]);
 
-        $response = $this->getJson('threads?unanswered=1')->json();
+        $response = $this->getJson('/threads?unanswered=1')->json();
         $this->assertCount(1, $response['data']);
     }
 
@@ -84,7 +86,8 @@ class ReadThreadsTest extends TestCase
     {
         $thread   = create(Thread::class);
         $reply    = create(Reply::class, ['thread_id' => $thread->id]);
-        $response = $this->getJson($thread->path() . '/replies')->json();
+        $response = $this->getJson(route('threads.replies.index', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]))
+                         ->json();
 
         $this->assertCount(1, $response['data']);
         $this->assertEquals(1, $response['total']);
@@ -96,7 +99,7 @@ class ReadThreadsTest extends TestCase
 
         $this->assertSame(0, $thread->visits);
 
-        $this->call('GET', $thread->path());
+        $this->get(route('threads.show', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]));
 
         $this->assertEquals(1, $thread->fresh()->visits);
     }
