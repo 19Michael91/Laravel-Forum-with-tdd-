@@ -16,7 +16,7 @@ class TrendingThreadsTest extends TestCase
 
         $thread = create(Thread::class);
 
-        $this->call('GET', $thread->path());
+        $this->get(route('threads.show', ['channel' => $thread->channel->slug, 'thread' => $thread->slug]));
 
         $this->assertCount(1, $this->trending->get());
 
